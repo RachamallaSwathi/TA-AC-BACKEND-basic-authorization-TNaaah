@@ -3,23 +3,23 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
-var mongoose=require('mongoose');
-var session=require('express-session');
+var mongoose = require('mongoose');
+var session = require('express-session');
+var flash = require('connect-flash');
 var MongoStore = require('connect-mongo');
-var flash=require('connect-flash');
-var authUser=require('./middlewares/authUser');
-var authAdmin=require('./middlewares/authAdmin');
+var auth = require('./middlewares/auth');
+
+// require('dotenv').config();
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
-var adminRouter=require('./routes/admin');
+var productsRouter = require('./routes/products');
+
+mongoose.connect('mongodb://127.0.0.1:27017/ecomm', (err) => {
+  console.log(err ? err : 'Connected to DB.');
+});
 
 var app = express();
-mongoose.connect('mongodb://localhost/Ecommerce',(err)=>{
-  console.log(err?err:'Connected to Database');
-})
-
-
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -31,33 +31,31 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.use(
+  session({
+    secret: "secretmeassge",
+    saveUninitialized: false,
+    resave: false,
+    store: MongoStore.create({ mongoUrl: 'mongodb://127.0.0.1:27017/ecomm' }),
+  })
+);
 
-
-//add session and persit user in session
-app.use(session({
-  secret:"somerandomsecret",
-  resave:false,
-  saveUninitialized:false,
-  store:  MongoStore.create({mongoUrl:'mongodb://localhost/users'})
-}))
-
-//flash middleware
 app.use(flash());
 
-app.use(authUser.userInfo);
-app.use(authAdmin.adminInfo);
+// get user info
+app.use(auth.userInfo);
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
-app.use('/admin',adminRouter);
+app.use('/products', productsRouter);
 
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
   next(createError(404));
 });
 
 // error handler
-app.use(function(err, req, res, next) {
+app.use(function (err, req, res, next) {
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};

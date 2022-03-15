@@ -1,17 +1,16 @@
-var mongoose=require('mongoose');
-var Schema=mongoose.Schema;
+const mongoose = require('mongoose');
+const Schema = mongoose.Schema;
 
+let productSchema = new Schema(
+  {
+    name: { type: String, required: true },
+    quantity: Number,
+    price: Number,
+    image: { type: String, required: true },
+    likes: Number,
+    category: { type: [String], required: true },
+  },
+  { timestamps: true }
+);
 
-var productSchema=new Schema({
-    name:{type:String,required:true},
-    quantity:{type:Number,default:0},
-    price:{type:Number,required:true},
-    likes:{type:Number,default:0},   
-    category:{type:String,required:true},
-   
-
-},{timestamps:true})
-
-
-
-module.exports=mongoose.model('Product',productSchema);
+module.exports = mongoose.model('Product', productSchema);
